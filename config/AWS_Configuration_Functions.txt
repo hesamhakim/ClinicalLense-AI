@@ -1,0 +1,109 @@
+def setup_aws_ui():
+    """Create UI for AWS setup"""
+    # Create input widgets
+    profile_input = widgets.Text(
+        value='plm-dev',
+        placeholder='AWS SSO profile name',
+        description='AWS Profile:',
+        layout={'width': '50%'},
+        style={'description_width': 'initial'}
+    )
+    
+    region_input = widgets.Text(
+        value='us-west-2',
+        placeholder='AWS region',
+        description='AWS Region:',
+        layout={'width': '50%'},
+        style={'description_width': 'initial'}
+    )
+    
+    login_button = widgets.Button(
+        description='Login with SSO',
+        button_style='primary',
+        layout={'width': 'auto'}
+    )
+    
+    init_button = widgets.Button(
+        description='Initialize AWS',
+        button_style='success',
+        layout={'width': 'auto'}
+    )
+    
+    output = widgets.Output()
+    
+    # Define button handlers
+    def on_login_button_click(b):
+        with output:
+            clear_output()
+            sso_login(profile_input.value)
+    
+    def on_init_button_click(b):
+        with output:
+            clear_output()
+            success = initialize_aws(profile_input.value, region_input.value)
+            if success:
+                # Initialize the summarization UI
+                initialize_summarization_ui()
+    
+    # Attach handlers
+    login_button.on_click(on_login_button_click)
+    init_button.on_click(on_init_button_click)
+    
+    # Display widgets
+    display(widgets.VBox([
+        widgets.HTML("<h3>Step 3: Configure AWS Bedrock</h3>"),
+        widgets.HTML("<p>Use your AWS SSO credentials to access Bedrock for note summarization</p>"),
+        profile_input,
+        region_input,
+        widgets.HBox([login_button, init_button]),
+        output
+    ]))
+
+def sso_login(profile_name="default"):
+    """Attempt to login with AWS SSO"""
+    print(f"Attempting to login with AWS SSO using profile '{profile_name}'...")
+    result = subprocess.run(
+        ["aws", "sso", "login", "--profile", profile_name],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode == 0:
+        print("✅ SSO login successful")
+        return True
+    else:
+        print(f"❌ SSO login failed: {result.stderr}")
+        print("Please run 'aws sso login --profile your-profile' in a terminal")
+        return False
+
+def initialize_aws(profile_name="default", region_name="us-west-2"):
+    """Initialize AWS clients"""
+    global bedrock_runtime, bedrock
+    
+    # Create a session with the profile
+    session = boto3.Session(profile_name=profile_name, region_name=region_name)
+    
+    # Create Bedrock clients using the session
+    try:
+        bedrock_runtime = session.client('bedrock-runtime')
+        bedrock = session.client('bedrock')
+        
+        # Test the connection
+        models = bedrock.list_foundation_models()
+        print("Available Bedrock models:")
+        
+        # Print first 10 models
+        for model in models['modelSummaries'][:10]:
+            print(f"- {model['modelId']}")
+        print(f"... and {len(models['modelSummaries']) - 10} more models")
+        print(f"\nTotal models available: {len(models['modelSummaries'])}")
+        
+        return True
+    except Exception as e:
+        print(f"❌ Could not initialize AWS: {e}")
+        print("\nTroubleshooting steps:")
+        print(f"1. Run 'aws sso login --profile {profile_name}' in a terminal")
+        print(f"2. Check that your profile is configured with the correct region")
+        print(f"3. Verify that your IAM role has permissions to access Bedrock")
+        print(f"4. Make sure Bedrock is available in region '{region_name}'")
+        return False
