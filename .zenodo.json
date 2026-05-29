@@ -1,0 +1,30 @@
+{
+  "title": "ClinicalLens AI: HIPAA-Compliant Clinical Documentation Intelligence Suite",
+  "description": "ClinicalLens AI leverages large language models to extract, filter, summarize, and enable natural language querying of medical notes, streamlining healthcare documentation workflows while maintaining strict HIPAA-compliant data security protocols.",
+  "creators": [
+    {
+      "name": "Hakimjavadi, Hesamedin",
+      "orcid": "0000-0003-0587-1342",
+      "affiliation": "Medical College of Wisconsin"
+    }
+  ],
+  "keywords": [
+    "bioinformatics",
+    "clinical-informatics",
+    "hipaa",
+    "large-language-models",
+    "ehr",
+    "clinical-nlp",
+    "healthcare-ai"
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "upload_type": "software",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/hesamhakim/ClinicalLense-AI",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
